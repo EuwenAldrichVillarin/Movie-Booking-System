@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, CreditCard, Smartphone, ArrowLeft, Check, X } from 'lucide-react';
+import { Calendar, Clock, CreditCard, Smartphone, ArrowLeft, Check, X, MapPin } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const Checkout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [step, setStep] = useState(1);
+  const [selectedMall, setSelectedMall] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [selectedSeats, setSelectedSeats] = useState([]);
@@ -21,6 +22,15 @@ const Checkout = () => {
     price: 250
   };
 
+  // Mall data
+  const malls = [
+    { id: 1, name: 'SM CITY', location: 'Cebu, Cebu City' },
+    { id: 2, name: 'Ayala Malls', location: 'Cebu, Cebu City' },
+    { id: 3, name: 'Robinson\'s Place', location: 'Cebu, Cebu City' },
+    { id: 4, name: 'Robinsons Mall', location: 'Cebu, Cebu City' },
+    { id: 5, name: 'Megamall', location: 'Cebu, Cebu City' },
+    { id: 6, name: 'Trinoma', location: 'Cebu, Cebu City' }
+  ];
 
   const dates = Array.from({ length: 7 }, (_, i) => {
     const date = new Date();
@@ -87,7 +97,7 @@ const Checkout = () => {
   const canProceed = () => {
     switch (step) {
       case 1:
-        return selectedDate && selectedTime;
+        return selectedMall && selectedDate && selectedTime;
       case 2:
         return selectedSeats.length > 0;
       case 3:
@@ -140,7 +150,7 @@ const Checkout = () => {
         <div className="mb-12 animate-slide-up" style={{ animationDelay: '0.1s' }}>
           <div className="flex items-center justify-between max-w-3xl mx-auto">
             {[
-              { num: 1, label: 'Date & Time' },
+              { num: 1, label: 'Mall, Date & Time' },
               { num: 2, label: 'Select Seats' },
               { num: 3, label: 'Payment' }
             ].map((s, idx) => (
@@ -170,34 +180,59 @@ const Checkout = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2">
-            {/* Step 1: Date & Time */}
+            {/* Step 1: Mall, Date & Time */}
             {step === 1 && (
               <div className="space-y-6 animate-slide-up">
+                {/* Mall Selection */}
+                <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 md:p-6 border border-gray-700/50">
+                  <div className="flex items-center gap-3 mb-4 md:mb-6">
+                    <MapPin className="text-red-500" size={20} />
+                    <h2 className="text-xl md:text-2xl font-bold">Select Mall</h2>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {malls.map((mall, idx) => (
+                      <button
+                        key={mall.id}
+                        onClick={() => setSelectedMall(mall)}
+                        className={`p-4 rounded-lg transition-all duration-300 text-left ${
+                          selectedMall?.id === mall.id
+                            ? 'bg-gradient-to-br from-red-600 to-orange-600 shadow-lg shadow-red-500/50 scale-105'
+                            : 'bg-gray-800/50 hover:bg-gray-700/50 hover:scale-105'
+                        }`}
+                        style={{ animationDelay: `${idx * 0.05}s` }}
+                      >
+                        <div className="font-semibold text-sm md:text-base">{mall.name}</div>
+                        <div className="text-xs md:text-sm text-gray-300 mt-1">{mall.location}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Date Selection */}
-                        <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 md:p-6 border border-gray-700/50">
-                        <div className="flex items-center gap-3 mb-4 md:mb-6">
-                            <Calendar className="text-red-500" size={20} md:size={24} />
-                            <h2 className="text-xl md:text-2xl font-bold">Select Date</h2>
-                        </div>
-                        <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 md:gap-3">
-                            {dates.map((d, idx) => (
-                            <button
-                                key={idx}
-                                onClick={() => setSelectedDate(d)}
-                                className={`p-2 md:p-4 rounded-lg md:rounded-xl transition-all duration-300 ${
-                                selectedDate?.date === d.date
-                                    ? 'bg-gradient-to-br from-red-600 to-orange-600 shadow-lg shadow-red-500/50 scale-105'
-                                    : 'bg-gray-800/50 hover:bg-gray-700/50 hover:scale-105'
-                                }`}
-                                style={{ animationDelay: `${idx * 0.05}s` }}
-                            >
-                                <div className="text-xs text-gray-400">{d.day}</div>
-                                <div className="text-lg md:text-2xl font-bold my-1">{d.date}</div>
-                                <div className="text-xs text-gray-400">{d.month}</div>
-                            </button>
-                            ))}
-                        </div>
-                        </div>
+                <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 md:p-6 border border-gray-700/50">
+                  <div className="flex items-center gap-3 mb-4 md:mb-6">
+                    <Calendar className="text-red-500" size={20} />
+                    <h2 className="text-xl md:text-2xl font-bold">Select Date</h2>
+                  </div>
+                  <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 md:gap-3">
+                    {dates.map((d, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setSelectedDate(d)}
+                        className={`p-2 md:p-4 rounded-lg md:rounded-xl transition-all duration-300 ${
+                          selectedDate?.date === d.date
+                            ? 'bg-gradient-to-br from-red-600 to-orange-600 shadow-lg shadow-red-500/50 scale-105'
+                            : 'bg-gray-800/50 hover:bg-gray-700/50 hover:scale-105'
+                        }`}
+                        style={{ animationDelay: `${idx * 0.05}s` }}
+                      >
+                        <div className="text-xs text-gray-400">{d.day}</div>
+                        <div className="text-lg md:text-2xl font-bold my-1">{d.date}</div>
+                        <div className="text-xs text-gray-400">{d.month}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
                 {/* Time Selection */}
                 <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50">
@@ -205,7 +240,7 @@ const Checkout = () => {
                     <Clock className="text-red-500" size={24} />
                     <h2 className="text-2xl font-bold">Select Time</h2>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 ">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {times.map((t, idx) => (
                       <button
                         key={t.id}
@@ -252,120 +287,120 @@ const Checkout = () => {
 
                 {/* Seating Area */}
                 <div className="mb-8">
-            <div className="max-w-5xl mx-auto">
-                {rows.map((row, rowIdx) => {
-                let seatCounter = 0;
-                return (
-      <div 
-        className="flex items-center justify-center gap-1 sm:gap-2 md:gap-3 mb-3 md:mb-4 animate-seat-row"
-        style={{ 
-          animationDelay: `${rowIdx * 0.08}s`,
-          animationFillMode: 'both'
-        }}
-      >
-        {/* Row Label - Left */}
-        <div className="w-6 sm:w-7 md:w-8 text-center font-bold text-gray-500 text-xs sm:text-sm">
-          {row}
-        </div>
+                  <div className="max-w-5xl mx-auto">
+                    {rows.map((row, rowIdx) => {
+                      let seatCounter = 0;
+                      return (
+                        <div 
+                          className="flex items-center justify-center gap-1 sm:gap-2 md:gap-3 mb-3 md:mb-4 animate-seat-row"
+                          style={{ 
+                            animationDelay: `${rowIdx * 0.08}s`,
+                            animationFillMode: 'both'
+                          }}
+                        >
+                          {/* Row Label - Left */}
+                          <div className="w-6 sm:w-7 md:w-8 text-center font-bold text-gray-500 text-xs sm:text-sm">
+                            {row}
+                          </div>
 
-        {/* Left Section */}
-        <div className="flex gap-1 sm:gap-2">
-          {Array.from({ length: seatSections.left }, () => {
-            seatCounter++;
-            const seatId = `${row}${seatCounter}`;
-            const status = getSeatStatus(seatId);
-            return (
-              <button
-                key={seatId}
-                onClick={() => handleSeatClick(seatId)}
-                disabled={status === 'unavailable'}
-                className={`w-4 h-4 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-md sm:rounded-lg transition-all duration-300 relative group ${getSeatColor(status)}`}
-                title={seatId}
-              >
-                {/* Seat tooltip */}
-                <span className="absolute -top-6 sm:-top-7 md:-top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none text-[10px] sm:text-xs z-10">
-                  {seatId}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+                          {/* Left Section */}
+                          <div className="flex gap-1 sm:gap-2">
+                            {Array.from({ length: seatSections.left }, () => {
+                              seatCounter++;
+                              const seatId = `${row}${seatCounter}`;
+                              const status = getSeatStatus(seatId);
+                              return (
+                                <button
+                                  key={seatId}
+                                  onClick={() => handleSeatClick(seatId)}
+                                  disabled={status === 'unavailable'}
+                                  className={`w-4 h-4 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-md sm:rounded-lg transition-all duration-300 relative group ${getSeatColor(status)}`}
+                                  title={seatId}
+                                >
+                                  {/* Seat tooltip */}
+                                  <span className="absolute -top-6 sm:-top-7 md:-top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none text-[10px] sm:text-xs z-10">
+                                    {seatId}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
 
-        {/* Aisle Gap */}
-        <div className="w-4 sm:w-6 md:w-8" />
+                          {/* Aisle Gap */}
+                          <div className="w-4 sm:w-6 md:w-8" />
 
-        {/* Center Section */}
-        <div className="flex gap-1 sm:gap-2">
-          {Array.from({ length: seatSections.center }, () => {
-            seatCounter++;
-            const seatId = `${row}${seatCounter}`;
-            const status = getSeatStatus(seatId);
-            return (
-              <button
-                key={seatId}
-                onClick={() => handleSeatClick(seatId)}
-                disabled={status === 'unavailable'}
-                className={`w-4 h-4 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-md sm:rounded-lg transition-all duration-300 relative group ${getSeatColor(status)}`}
-                title={seatId}
-              >
-                {/* Seat tooltip */}
-                <span className="absolute -top-6 sm:-top-7 md:-top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none text-[10px] sm:text-xs z-10">
-                  {seatId}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+                          {/* Center Section */}
+                          <div className="flex gap-1 sm:gap-2">
+                            {Array.from({ length: seatSections.center }, () => {
+                              seatCounter++;
+                              const seatId = `${row}${seatCounter}`;
+                              const status = getSeatStatus(seatId);
+                              return (
+                                <button
+                                  key={seatId}
+                                  onClick={() => handleSeatClick(seatId)}
+                                  disabled={status === 'unavailable'}
+                                  className={`w-4 h-4 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-md sm:rounded-lg transition-all duration-300 relative group ${getSeatColor(status)}`}
+                                  title={seatId}
+                                >
+                                  {/* Seat tooltip */}
+                                  <span className="absolute -top-6 sm:-top-7 md:-top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none text-[10px] sm:text-xs z-10">
+                                    {seatId}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
 
-        {/* Aisle Gap */}
-        <div className="w-4 sm:w-6 md:w-8" />
+                          {/* Aisle Gap */}
+                          <div className="w-4 sm:w-6 md:w-8" />
 
-        {/* Right Section */}
-        <div className="flex gap-1 sm:gap-2">
-          {Array.from({ length: seatSections.right }, () => {
-            seatCounter++;
-            const seatId = `${row}${seatCounter}`;
-            const status = getSeatStatus(seatId);
-            return (
-              <button
-                key={seatId}
-                onClick={() => handleSeatClick(seatId)}
-                disabled={status === 'unavailable'}
-                className={`w-4 h-4 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-md sm:rounded-lg transition-all duration-300 relative group ${getSeatColor(status)}`}
-                title={seatId}
-              >
-                {/* Seat tooltip */}
-                <span className="absolute -top-6 sm:-top-7 md:-top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none text-[10px] sm:text-xs z-10">
-                  {seatId}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+                          {/* Right Section */}
+                          <div className="flex gap-1 sm:gap-2">
+                            {Array.from({ length: seatSections.right }, () => {
+                              seatCounter++;
+                              const seatId = `${row}${seatCounter}`;
+                              const status = getSeatStatus(seatId);
+                              return (
+                                <button
+                                  key={seatId}
+                                  onClick={() => handleSeatClick(seatId)}
+                                  disabled={status === 'unavailable'}
+                                  className={`w-4 h-4 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-md sm:rounded-lg transition-all duration-300 relative group ${getSeatColor(status)}`}
+                                  title={seatId}
+                                >
+                                  {/* Seat tooltip */}
+                                  <span className="absolute -top-6 sm:-top-7 md:-top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none text-[10px] sm:text-xs z-10">
+                                    {seatId}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
 
-        {/* Row Label - Right */}
-        <div className="w-6 sm:w-7 md:w-8 text-center font-bold text-gray-500 text-xs sm:text-sm">
-          {row}
-        </div>
-      </div>
-    )
-                })}
-            </div>
-            </div>
+                          {/* Row Label - Right */}
+                          <div className="w-6 sm:w-7 md:w-8 text-center font-bold text-gray-500 text-xs sm:text-sm">
+                            {row}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
 
                 {/* Legend */}
-                <div className="flex flex-wrap gap-8 justify-center pt-6 border-t border-gray-700/50">
+                <div className="flex flex-row md:flex-wrap gap-8 justify-center pt-6 border-t border-gray-700/50">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-gray-800 rounded-lg" />
-                    <span className="text-sm text-gray-300 font-medium">Available</span>
+                    <div className="w-5 h-5 sm:w-8 sm:h-8 md:w-9 md:h-9 bg-gray-800 rounded-lg" />
+                    <span className="text-xs md:text-sm text-gray-300 font-medium">Available</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-gradient-to-br from-red-600 to-orange-600 rounded-lg shadow-lg shadow-red-500/50" />
-                    <span className="text-sm text-gray-300 font-medium">Selected</span>
+                    <div className="w-5 h-5 sm:w-8 sm:h-8 md:w-9 md:h-9 bg-gradient-to-br from-red-600 to-orange-600 rounded-lg shadow-lg shadow-red-500/50" />
+                    <span className="text-xs md:text-sm text-gray-300 font-medium">Selected</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-black/50 rounded-lg" />
-                    <span className="text-sm text-gray-300 font-medium">Unavailable</span>
+                    <div className="w-5 h-5 sm:w-8 sm:h-8 md:w-9 md:h-9 bg-black/50 rounded-lg" />
+                    <span className="text-xs md:text-sm text-gray-300 font-medium">Unavailable</span>
                   </div>
                 </div>
 
@@ -446,12 +481,12 @@ const Checkout = () => {
 
           {/* Order Summary Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 sticky top-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+            <div className="bg-gradient-to-br h-full from-gray-800/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 sticky top-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
               <h3 className="text-xl font-bold mb-4">Order Summary</h3>
               
               {/* Movie Info */}
               <div className="mb-6">
-                <img src={movie.image} alt={movie.title} className="w-full h-[45vh] object-cover rounded-lg mb-4" />
+                <img src={movie.image} alt={movie.title} className="w-full h-full object-cover rounded-lg mb-4" />
                 <h4 className="font-bold text-2xl mb-2">{movie.title}</h4>
                 <div className="flex items-center justify-center gap-4 text-sm text-gray-400">
                   <span>{movie.duration}</span>
@@ -460,6 +495,12 @@ const Checkout = () => {
               </div>
 
               <div className="space-y-3 mb-6 text-sm">
+                {selectedMall && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Mall:</span>
+                    <span className="font-semibold text-right">{selectedMall.name}</span>
+                  </div>
+                )}
                 {selectedDate && selectedTime && (
                   <div className="flex justify-between">
                     <span className="text-gray-400">Date & Time:</span>

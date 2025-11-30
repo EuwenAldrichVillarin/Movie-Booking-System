@@ -19,9 +19,16 @@ export default function Navbar() {
   };
 
   // Helper function to check if current path matches
-  const isActivePath = (path) => {
-    return location.pathname === path;
-  };
+ const isActivePath = (path) => {
+  const currentPath = location.pathname;
+  
+  // If no valid path found, treat /home as active
+  if (currentPath === '/' || currentPath === '') {
+    return path === '/Home';
+  }
+  
+  return currentPath === path;
+};
 
   // Active button styles
   const activeStyles = "text-red-500 font-semibold";
@@ -45,8 +52,8 @@ export default function Navbar() {
           <div className='flex flex-row gap-10 justify-center items-center'>
             <div className="hidden md:flex space-x-8">
               <button 
-                onClick={() => handleNavigation('/home')} 
-                className={isActivePath('/home') ? activeStyles : inactiveStyles}
+                onClick={() => handleNavigation('/Home')} 
+                className={isActivePath('/Home') ? activeStyles : inactiveStyles}
               >
                 Home
               </button>
@@ -55,12 +62,6 @@ export default function Navbar() {
                 className={isActivePath('/movies') ? activeStyles : inactiveStyles}
               >
                 Movies
-              </button>
-                 <button 
-                onClick={() => handleNavigation('/')} 
-                className={isActivePath('/') ? activeStyles : inactiveStyles}
-              >
-                Theaters
               </button>
               <button 
                 onClick={() => handleNavigation('/features')} 
