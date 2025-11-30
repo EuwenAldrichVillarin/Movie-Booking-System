@@ -16,7 +16,6 @@ export default function Login() {
     lastName: '',
     phone: ''
   });
-  console.log();
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
