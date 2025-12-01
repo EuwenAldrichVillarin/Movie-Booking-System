@@ -478,11 +478,7 @@ const BookingMovie = () => {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm animate-fade-in"
           onClick={closeTrailer}
         >
-          <div 
-            className="relative w-full max-w-6xl mx-4 bg-gray-900 rounded-3xl overflow-hidden shadow-2xl border border-red-500/30"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Close Button */}
+          {/* Close Button */}
             <button
               onClick={closeTrailer}
               className="absolute top-6 right-6 z-10 p-3 bg-red-600/90 hover:bg-red-500 rounded-full transition-all duration-300 hover:scale-110 shadow-lg group"
@@ -494,6 +490,11 @@ const BookingMovie = () => {
                 Close (ESC)
               </span>
             </button>
+          <div 
+            className="relative w-full max-w-6xl mx-4 bg-gray-900 rounded-3xl overflow-hidden shadow-2xl border border-red-500/30"
+            onClick={(e) => e.stopPropagation()}
+          >
+            
 
             {/* Video Container with 16:9 aspect ratio */}
             <div className="relative pt-[56.25%] bg-black">
