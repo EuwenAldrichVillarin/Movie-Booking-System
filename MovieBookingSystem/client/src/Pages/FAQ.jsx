@@ -193,7 +193,7 @@ const FAQ = () => {
                         }`}
                       >
                         <div className="px-6 pb-5 text-gray-300 leading-relaxed border-t border-gray-800/50">
-                          <p className="pt-4">{faq.answer}</p>
+                          <p className="pt-4 text-left">{faq.answer}</p>
                         </div>
                       </div>
                     </div>

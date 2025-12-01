@@ -3,15 +3,22 @@ import { Calendar, Clock, CreditCard, Smartphone, ArrowLeft, Check, X, MapPin } 
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const Checkout = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const screens = [
+    { id: 1, name: 'Screen 1' },
+    { id: 2, name: 'Screen 2' },
+    { id: 3, name: 'Screen 3' }
+  ];
+
   const [step, setStep] = useState(1);
   const [selectedMall, setSelectedMall] = useState(null);
+ const [selectedScreen, setSelectedScreen] = useState(screens[0]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState(null);
-
+  const navigate = useNavigate();
+  const location = useLocation();
+ 
   // Get movie data from navigation state or use default
   const movie = location.state?.movie || {
     title: "Altered",
@@ -20,6 +27,16 @@ const Checkout = () => {
     rating: "R-5",
     genre: "Science Fiction, Action",
     price: 250
+  };
+
+  // Screen data
+
+
+  // Mall availability by screen
+  const mallAvailability = {
+    1: [1, 3, 5], // Screen 1: SM CITY, Robinson's Place, Megamall available
+    2: [2, 4, 6], // Screen 2: Ayala Malls, Robinsons Mall, Trinoma available
+    3: [1, 2, 4, 5] // Screen 3: SM CITY, Ayala Malls, Robinsons Mall, Megamall available
   };
 
   // Mall data
@@ -31,6 +48,11 @@ const Checkout = () => {
     { id: 5, name: 'Megamall', location: 'Cebu, Cebu City' },
     { id: 6, name: 'Trinoma', location: 'Cebu, Cebu City' }
   ];
+
+  const isMallAvailable = (mallId) => {
+    if (!selectedScreen) return true;
+    return mallAvailability[selectedScreen.id].includes(mallId);
+  };
 
   const dates = Array.from({ length: 7 }, (_, i) => {
     const date = new Date();
@@ -97,7 +119,7 @@ const Checkout = () => {
   const canProceed = () => {
     switch (step) {
       case 1:
-        return selectedMall && selectedDate && selectedTime;
+        return selectedMall && selectedScreen && selectedDate && selectedTime;
       case 2:
         return selectedSeats.length > 0;
       case 3:
@@ -129,12 +151,12 @@ const Checkout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-white py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white py-12 px-4">
       <div className="container mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-8 animate-fade-in">
           <button 
-            onClick={() => navigate('/movies')}
+            onClick={() => window.history.back()}
             className="flex items-center gap-2 text-gray-400 hover:text-red-500 transition-colors mb-4"
           >
             <ArrowLeft size={20} />
@@ -185,26 +207,64 @@ const Checkout = () => {
               <div className="space-y-6 animate-slide-up">
                 {/* Mall Selection */}
                 <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 md:p-6 border border-gray-700/50">
-                  <div className="flex items-center gap-3 mb-4 md:mb-6">
-                    <MapPin className="text-red-500" size={20} />
-                    <h2 className="text-xl md:text-2xl font-bold">Select Mall</h2>
+                  <div className="flex items-center justify-between mb-4 md:mb-6">
+                    <div className="flex items-center gap-3">
+                      <MapPin className="text-red-500" size={20} />
+                      <h2 className="text-xl md:text-2xl font-bold">Select Mall</h2>
+                    </div>
+                    
+                    {/* Screen Selection */}
+                    <div className="flex gap-2">
+                      {screens.map((screen) => (
+                        <button
+                          key={screen.id}
+                          onClick={() => {
+                            setSelectedScreen(screen);
+                            // Reset mall selection if current mall is not available for new screen
+                            if (selectedMall && !mallAvailability[screen.id].includes(selectedMall.id)) {
+                              setSelectedMall(null);
+                            }
+                          }}
+                          className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg text-xs md:text-sm font-semibold transition-all duration-300 ${
+                            selectedScreen?.id === screen.id
+                              ? 'bg-gradient-to-br from-red-600 to-orange-600 shadow-lg shadow-red-500/50'
+                              : 'bg-gray-800/50 hover:bg-gray-700/50'
+                          }`}
+                        >
+                          {screen.name}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {malls.map((mall, idx) => (
-                      <button
-                        key={mall.id}
-                        onClick={() => setSelectedMall(mall)}
-                        className={`p-4 rounded-lg transition-all duration-300 text-left ${
-                          selectedMall?.id === mall.id
-                            ? 'bg-gradient-to-br from-red-600 to-orange-600 shadow-lg shadow-red-500/50 scale-105'
-                            : 'bg-gray-800/50 hover:bg-gray-700/50 hover:scale-105'
-                        }`}
-                        style={{ animationDelay: `${idx * 0.05}s` }}
-                      >
-                        <div className="font-semibold text-sm md:text-base">{mall.name}</div>
-                        <div className="text-xs md:text-sm text-gray-300 mt-1">{mall.location}</div>
-                      </button>
-                    ))}
+                    {malls.map((mall, idx) => {
+                      const available = isMallAvailable(mall.id);
+                      return (
+                        <button
+                          key={mall.id}
+                          onClick={() => available && setSelectedMall(mall)}
+                          disabled={!available}
+                          className={`p-4 rounded-lg transition-all duration-300 text-left ${
+                            !available
+                              ? 'bg-gray-800/30 opacity-50 cursor-not-allowed'
+                              : selectedMall?.id === mall.id
+                              ? 'bg-gradient-to-br from-red-600 to-orange-600 shadow-lg shadow-red-500/50 scale-105'
+                              : 'bg-gray-800/50 hover:bg-gray-700/50 hover:scale-105'
+                          }`}
+                          style={{ animationDelay: `${idx * 0.05}s` }}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-semibold text-sm md:text-base">{mall.name}</div>
+                              <div className="text-xs md:text-sm text-gray-300 mt-1">{mall.location}</div>
+                            </div>
+                            {!available && (
+                              <span className="text-xs text-red-400 font-semibold">Sold Out</span>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -292,6 +352,7 @@ const Checkout = () => {
                       let seatCounter = 0;
                       return (
                         <div 
+                          key={row}
                           className="flex items-center justify-center gap-1 sm:gap-2 md:gap-3 mb-3 md:mb-4 animate-seat-row"
                           style={{ 
                             animationDelay: `${rowIdx * 0.08}s`,
