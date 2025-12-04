@@ -1,19 +1,17 @@
-import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
 
 const ProtectedRoute = () => {
-  // You store user in either "user" or "mobook_user"
-  const storedUser =
-    localStorage.getItem("user") || localStorage.getItem("mobook_user");
+  const stored = localStorage.getItem("mobook_user");
 
-  const isLoggedIn = !!storedUser;
-
-  // If not logged in, redirect to login (/)
-  if (!isLoggedIn) {
-    return <Navigate to="/" replace />;
+  let user = null;
+  try {
+    user = stored ? JSON.parse(stored) : null;
+  } catch {
+    user = null;
   }
 
-  // If logged in, allow access to nested routes
+  if (!user) return <Navigate to="/" replace />;
+
   return <Outlet />;
 };
 
