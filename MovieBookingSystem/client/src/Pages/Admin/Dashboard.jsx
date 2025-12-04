@@ -113,10 +113,10 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="min-h-screen p-4 md:p-6">
+    <div className="min-h-screen p-4 md:p-6 xl:px-6 xl:pt-6 xl:pb-0">
       {/* Header */}
       <div className="mb-6 md:mb-8 pt-15">
-        <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2 flex items-center gap-3">
+        <h1 className="text-4xl lg:text-5xl font-black text-transparent mb-3 bg-clip-text bg-gradient-to-r from-red-700 to-black text-left">
           Dashboard
         </h1>
         <p className="text-sm md:text-base text-gray-400 flex items-center gap-2">

@@ -1,13 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { LayoutDashboard, Film, Ticket, User, Settings, LogOut, ChevronDown } from 'lucide-react';
 import icon from "/assets/logo.png";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom'; // Added useLocation
 
 export default function Sidebar({ onToggle }) {
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
+  const location = useLocation(); // Get current location
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState('dashboard');
+
+  // Set active menu based on current path on initial load and when location changes
+  useEffect(() => {
+    // Map paths to menu IDs
+    const pathToMenuId = {
+      '/dashboard': 'dashboard',
+      '/movie-management': 'movies',
+      '/booking-management': 'bookings',
+      '/settings': 'settings'
+    };
+
+    // Find the current path in the mapping
+    const currentPath = location.pathname;
+    let foundMenu = 'dashboard'; // Default to dashboard
+    
+    // Check exact match first
+    if (pathToMenuId[currentPath]) {
+      foundMenu = pathToMenuId[currentPath];
+    } else {
+      // Check for partial matches (for nested routes)
+      Object.keys(pathToMenuId).forEach(path => {
+        if (currentPath.startsWith(path)) {
+          foundMenu = pathToMenuId[path];
+        }
+      });
+    }
+
+    setActiveMenu(foundMenu);
+  }, [location.pathname]); // Run when pathname changes
 
   // Notify parent when sidebar state changes
   useEffect(() => {
@@ -18,13 +48,13 @@ export default function Sidebar({ onToggle }) {
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', id: 'dashboard', path: '/dashboard' },
-    { icon: Film, label: 'Movie Management', id: 'movies', path: '/movie-management' }, // Fixed path
-    { icon: Ticket, label: 'Booking Management', id: 'bookings', path: '/booking-management' } // Fixed path
+    { icon: Film, label: 'Movies', id: 'movies', path: '/movie-management' },
+    { icon: Ticket, label: 'Bookings', id: 'bookings', path: '/booking-management' }
   ];
 
   const handleMenuClick = (id, path) => {
     setActiveMenu(id);
-    navigate(path); // Navigate to the path
+    navigate(path);
     // On mobile, close sidebar after selection
     if (window.innerWidth < 1024) {
       setIsOpen(false);
@@ -50,8 +80,8 @@ export default function Sidebar({ onToggle }) {
         onClick={handleToggle}
         className={`fixed bg-gradient-to-br from-red-600 to-red-800 text-white p-2 rounded-xl shadow-lg hover:shadow-red-500/50 hover:scale-110 transition-all duration-300 z-50 ${
           isOpen 
-            ? 'left-[285px]' // 280px - 8px (half button width)
-            : 'left-[5px] lg:left-[85px]' // 80px - 8px (half button width)
+            ? 'left-[285px]'
+            : 'left-[5px] lg:left-[85px]'
         } top-6 transition-all duration-300`}
       >
         <img 
@@ -96,7 +126,7 @@ export default function Sidebar({ onToggle }) {
             {menuItems.map((item, index) => (
               <button
                 key={item.id}
-                onClick={() => handleMenuClick(item.id, item.path)} // Only call handleMenuClick
+                onClick={() => handleMenuClick(item.id, item.path)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
                   activeMenu === item.id
                     ? 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-500/30 scale-105'
@@ -130,8 +160,9 @@ export default function Sidebar({ onToggle }) {
           <div className="p-4 border-t border-red-900/30">
             <div className="relative">
               <button
-                onClick={() => {setIsProfileOpen(!isProfileOpen);
-                    setIsOpen(true);
+                onClick={() => {
+                  setIsProfileOpen(!isProfileOpen);
+                  setIsOpen(true);
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-gray-300 hover:bg-red-900/30 hover:text-white group ${
                   !isOpen && 'lg:justify-center lg:px-2'
@@ -162,7 +193,10 @@ export default function Sidebar({ onToggle }) {
               {isProfileOpen && isOpen && (
                 <div className="mt-2 space-y-1" style={{ animation: 'slideDown 0.2s ease-out' }}>
                   <button
-                    onClick={() => navigate('/settings')}
+                    onClick={() => {
+                      navigate('/settings');
+                      setActiveMenu('settings');
+                    }}
                     className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-gray-300 hover:bg-red-900/30 hover:text-white transition-all duration-200 pl-12 group"
                   >
                     <Settings size={16} className="group-hover:rotate-90 transition-transform duration-300" />
