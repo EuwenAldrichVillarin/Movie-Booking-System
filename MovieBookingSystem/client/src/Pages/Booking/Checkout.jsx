@@ -804,7 +804,7 @@ const handleConfirm = async () => {
 
               {/* Movie Info */}
               <div className="mb-6">
-                <img src={movie.image} alt={movie.title} className="w-full h-[55vh] object-cover rounded-lg mb-4" />
+                <img src={movie.image} alt={movie.title} className="w-full h-[40vh] xl:h-[55vh] object-cover rounded-lg mb-4" />
                 <h4 className="font-bold text-2xl mb-2">{movie.title}</h4>
                 <div className="flex items-center justify-center gap-4 text-sm text-gray-400">
                   <span>{movie.duration}</span>

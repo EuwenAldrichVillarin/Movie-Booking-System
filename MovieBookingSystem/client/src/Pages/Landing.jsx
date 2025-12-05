@@ -259,19 +259,6 @@ const Landing = () => {
         disableButtons={isLoggingOut}
       />
 
-      {/* Navigation Confirmation Modal (for booking in progress) */}
-      <ConfirmationModal
-        isOpen={showConfirmModal}
-        onConfirm={confirmNavigation}
-        onCancel={cancelNavigation}
-        title="Logout with Active Booking"
-        message="You have an ongoing booking. Logging out will cancel your booking. Are you sure you want to logout?"
-        confirmText="Yes, Logout Anyway"
-        cancelText="Continue Booking"
-        confirmColor="bg-red-600 hover:bg-red-700"
-        disableButtons={isLoggingOut}
-      />
-
       {/* Hero Section with Dynamic Background */}
       <section className="min-h-screen flex items-center justify-center relative overflow-hidden">
         {/* Animated Background Carousel */}
