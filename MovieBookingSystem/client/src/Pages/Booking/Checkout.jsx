@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Calendar, Clock, CreditCard, Smartphone, ArrowLeft, Check, MapPin } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ConfirmationModal from '../../Modal/ConfimationModal';
+import LoadingState from '../../Components/LoadingState';
 
 const API_BASE = "http://localhost/mobook_api"; // ✅ CHANGE THIS to your PHP API folder
 
@@ -11,6 +12,7 @@ const toYMD = (dateObj) => {
   const d = String(dateObj.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
 };
+
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -44,6 +46,7 @@ const Checkout = () => {
     dates: false,
     times: false,
     seats: false,
+    booking: false, // Added booking loading state
   });
   const [error, setError] = useState(null);
 
@@ -57,6 +60,7 @@ const Checkout = () => {
   const [paymentMethod, setPaymentMethod] = useState(null);
   const [bookingInProgress, setBookingInProgress] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [bookingCompleted, setBookingCompleted] = useState(false);
 
   // --------- fallback generated dates ----------
   const generatedDates = useMemo(() => {
@@ -307,59 +311,74 @@ const Checkout = () => {
     if (step > 1) setStep(step - 1);
   };
 
-  // --------- CONFIRM BOOKING (DB SAVE) ----------
-  const handleConfirm = async () => {
-    if (!canProceed()) return;
+  // --------- CONFIRM BOOKING (DB SAVE) ---------- 
+// Update the handleConfirm function
+const handleConfirm = async () => {
+  if (!canProceed()) return;
 
-    if (!customerId) {
-      alert("You must be logged in to book.");
+  if (!customerId) {
+    alert("You must be logged in to book.");
+    return;
+  }
+
+  const payload = {
+    customerId,
+    showtimeId: selectedTime.id,
+    seatNumbers: selectedSeats,
+    paymentMethod,
+    paymentStatus: "PAID",
+  };
+
+  // Start booking loading
+  setLoading(l => ({ ...l, booking: true }));
+  setBookingCompleted(false); // Reset completed state
+
+  try {
+    const res = await fetch(`${API_BASE}/create_booking.php`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const json = await res.json();
+
+    if (!json.success) {
+      alert(json.message || "Booking failed.");
+      setLoading(l => ({ ...l, booking: false }));
       return;
     }
 
-    const payload = {
-      customerId,
-      showtimeId: selectedTime.id,
-      seatNumbers: selectedSeats,
-      paymentMethod,
-      paymentStatus: "PAID",
-    };
+    // Show success state first
+    setTimeout(() => {
+      setBookingCompleted(true);
+      
+      // Then navigate after showing success message
+      setTimeout(() => {
+        localStorage.removeItem("bookingInProgress");
 
-    try {
-      const res = await fetch(`${API_BASE}/create_booking.php`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+        // reset selections
+        setSelectedSeats([]);
+        setPaymentMethod(null);
+        setStep(1);
 
-      const json = await res.json();
+        // refresh seats for same time if user stays
+        setUnavailableSeats(prev => [...prev, ...selectedSeats]);
 
-      if (!json.success) {
-        alert(json.message || "Booking failed.");
-        return;
-      }
+        // Stop loading
+        setLoading(l => ({ ...l, booking: false }));
+        setBookingCompleted(false);
 
-      alert(`Booking Confirmed!`);
-      localStorage.removeItem("bookingInProgress");
+        // ✅ go back to Home after confirmed booking
+        navigate("/Home");
+      }, 1500); // Show success message for 1.5 seconds
+    }, 1500); // Show loading for 1.5 seconds
 
-      // reset selections
-      setSelectedSeats([]);
-      setPaymentMethod(null);
-      setStep(1);
-
-      // refresh seats for same time if user stays
-      setUnavailableSeats(prev => [...prev, ...selectedSeats]);
-
-      // ✅ go back to Home after confirmed booking
-      navigate("/Home");
-
-      // optional redirect:
-      // navigate("/receipt", { state: { bookingId: json.bookingId } });
-
-    } catch (err) {
-      console.error(err);
-      alert("Server error. Please try again.");
-    }
-  };
+  } catch (err) {
+    console.error(err);
+    alert("Server error. Please try again.");
+    setLoading(l => ({ ...l, booking: false }));
+  }
+};
 
   const paymentMethods = [
     { id: 'card', name: 'Credit/Debit Card', icon: CreditCard, color: 'from-blue-600 to-blue-700' },
@@ -370,6 +389,13 @@ const Checkout = () => {
 
   return (
     <div className="min-h-screen bg-transparent text-white py-12 px-4">
+      {/* Booking Loading State */}
+     {loading.booking && (
+        <LoadingState 
+          message={bookingCompleted ? "Booking Completed!" : "Processing your booking..."}
+        />
+      )}
+
       <div className="container mx-auto max-w-7xl">
 
         {/* Error banner */}
@@ -836,9 +862,9 @@ const Checkout = () => {
                     )}
                     <button
                       onClick={handleNext}
-                      disabled={!canProceed()}
+                      disabled={!canProceed() || loading.booking}
                       className={`w-full px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
-                        canProceed()
+                        canProceed() && !loading.booking
                           ? 'bg-gradient-to-r from-red-700 to-orange-600/20  hover:from-red-500 hover:to-red-600 shadow-lg shadow-red-500/20 hover:shadow-red-500/40'
                           : 'bg-gray-700 cursor-not-allowed opacity-50'
                       }`}
@@ -850,20 +876,25 @@ const Checkout = () => {
                   <>
                     <button
                       onClick={handleBack}
-                      className="w-full px-6 py-3 border-2 border-gray-700 rounded-lg hover:border-red-500 hover:bg-red-900/10 transition-all duration-300 font-semibold"
+                      disabled={loading.booking}
+                      className={`w-full px-6 py-3 border-2 border-gray-700 rounded-lg font-semibold transition-all duration-300 ${
+                        loading.booking
+                          ? 'opacity-50 cursor-not-allowed'
+                          : 'hover:border-red-500 hover:bg-red-900/10'
+                      }`}
                     >
                       Back
                     </button>
                     <button
                       onClick={handleConfirm}
-                      disabled={!canProceed()}
+                      disabled={!canProceed() || loading.booking}
                       className={`w-full px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
-                        canProceed()
+                        canProceed() && !loading.booking
                           ? 'bg-gradient-to-r from-red-700 to-orange-600/20  hover:from-red-500 hover:to-red-600 shadow-lg shadow-red-500/20 hover:shadow-red-500/40'
                           : 'bg-gray-700 cursor-not-allowed opacity-50'
                       }`}
                     >
-                      Confirm Booking
+                      {loading.booking ? 'Processing...' : 'Confirm Booking'}
                     </button>
                   </>
                 )}
